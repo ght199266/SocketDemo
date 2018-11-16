@@ -64,7 +64,7 @@ public class IpUtils {
                 //通过WIFI管理者获取Wifi信息
                 WifiInfo wifiInfo = ((WifiManager) context.getSystemService(Context.WIFI_SERVICE))
                         .getConnectionInfo();
-                //将属性设置到集合
+                //将属性设置到集合 ttt
                 prop.setProperty("ip", int2StrIP(wifiInfo.getIpAddress()));//得到IPV4地址
                 prop.setProperty("name", wifiInfo.getSSID());
                 prop.setProperty("BSSID", wifiInfo.getBSSID());
