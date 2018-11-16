@@ -59,7 +59,7 @@ public class MainActivity extends AppCompatActivity {
             }.start();
         } catch (IOException e) {
             e.printStackTrace();
-            Log.v("test", "IOException:=" + e.getMessage());
+            Log.v("test", "IOException22222222:=" + e.getMessage());
         }
     }
 
