@@ -48,6 +48,7 @@ public class MainActivity extends AppCompatActivity {
                     while (isAccept) {
                         try {
                             //监听一个客户端连接 uuu
+                            //asdsdasdasda
                             Socket socket = serverSocket.accept();
                             ClientTask clientTask = new ClientTask(socket);
                             new Thread(clientTask).start();
