@@ -72,7 +72,7 @@ public class IpUtils {
             }
         } else {
             //当前无网络连接
-            prop.setProperty("ERROR", "请打开网络");
+            prop.setProperty("ERRO2222R", "请打开网络");
         }
         return prop;
     }
