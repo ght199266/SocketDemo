@@ -2,6 +2,8 @@
 <RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@mipmap/bg_house"
+    android:fitsSystemWindows="true"
     android:orientation="vertical">
 
 
@@ -9,15 +11,14 @@
         android:id="@+id/layout_title_bar"
         android:layout_width="match_parent"
         android:layout_height="48dp"
-        android:layout_alignParentTop="true"
-        android:background="#000000">
+        android:layout_alignParentTop="true">
 
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:padding="10dp"
             android:gravity="center"
-            android:text="我的房间"
+            android:padding="10dp"
+            android:text="房间"
             android:textColor="#ffffff"
             android:textSize="16sp" />
 
@@ -27,82 +28,116 @@
     <LinearLayout
         android:id="@+id/layout_vs"
         android:layout_width="match_parent"
-        android:orientation="horizontal"
+        android:layout_height="180dp"
         android:layout_below="@+id/layout_title_bar"
-        android:layout_height="180dp">
+        android:orientation="horizontal">
 
 
         <FrameLayout
             android:layout_width="0dp"
+            android:layout_height="match_parent"
             android:layout_weight="1"
-            android:layout_height="match_parent">
+            android:padding="2dp">
 
             <ImageView
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="fitXY"
-                android:src="@mipmap/picture_one"/>
+                android:src="@mipmap/picture_one" />
+
+            <!--<TextView-->
+            <!--android:layout_width="match_parent"-->
+            <!--android:layout_height="match_parent"-->
+            <!--android:gravity="center"-->
+            <!--android:text="房主"-->
+            <!--android:textColor="#000000"-->
+            <!--android:textSize="16sp" />-->
 
         </FrameLayout>
 
+
+        <View
+            android:layout_width="1px"
+            android:layout_height="match_parent"
+            android:background="#000000" />
+
         <FrameLayout
             android:layout_width="0dp"
-            android:layout_weight="1"
-            android:layout_height="match_parent">
+            android:layout_height="match_parent"
+            android:layout_weight="1">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:gravity="center"
+                android:text="等待玩家进入"
+                android:textColor="#5effffff"
+                android:textSize="16sp" />
+
             <ImageView
+                android:id="@+id/iv_other_head"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
                 android:scaleType="fitXY"
-                android:src="@mipmap/picture_two"/>
+                android:src="@mipmap/picture_two"
+                android:visibility="gone" />
+
         </FrameLayout>
 
     </LinearLayout>
 
-
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1px"
+        android:layout_below="@+id/layout_vs"
+        android:background="#000000" />
 
     <Button
         android:id="@+id/btn_start_game"
-        android:layout_below="@+id/layout_vs"
         android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_centerInParent="true"
         android:text="开始游戏"
-        android:layout_height="wrap_content" />
+        android:visibility="gone" />
 
 
     <LinearLayout
-        android:layout_below="@+id/btn_start_game"
-        android:layout_above="@+id/layout_input_message"
         android:layout_width="match_parent"
-        android:gravity="center"
-        android:background="@android:color/black"
-        android:layout_height="match_parent">
+        android:layout_height="200dp"
+        android:layout_above="@+id/layout_input_message"
+        android:gravity="center">
 
         <android.support.v7.widget.RecyclerView
             android:id="@+id/recycleview"
             android:layout_width="match_parent"
-            android:layout_height="match_parent"/>
+            android:layout_height="match_parent" />
     </LinearLayout>
 
     <LinearLayout
         android:id="@+id/layout_input_message"
         android:layout_width="match_parent"
-        android:layout_height="48dp"
+        android:layout_height="38dp"
+        android:paddingBottom="5dp"
         android:layout_alignParentBottom="true"
-        android:background="@android:color/white"
         android:orientation="horizontal">
 
 
         <EditText
             android:id="@+id/ed_input"
             android:layout_width="0dp"
-            android:hint="请输入内容"
-            android:layout_height="wrap_content"
-            android:layout_weight="7" />
+            android:layout_height="match_parent"
+            android:layout_weight="7"
+            android:background="#5effffff"
+            android:paddingLeft="5dp"
+            android:textColor="#ffffff" />
 
         <Button
             android:id="@+id/btn_send"
             android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Send" />
+            android:layout_height="match_parent"
+            android:background="#5e000000"
+            android:text="发送"
+            android:textColor="#ffffff" />
 
     </LinearLayout>
 

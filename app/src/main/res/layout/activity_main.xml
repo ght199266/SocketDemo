@@ -1,32 +1,38 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
+    android:background="@mipmap/main_bg"
     android:orientation="vertical"
     tools:context=".MainActivity">
 
-    <TextView
-        android:id="@+id/tv_address"
+
+    <LinearLayout
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="本机地址:"
-        android:textSize="26sp" />
+        android:layout_centerInParent="true"
+        android:orientation="vertical">
+
+        <Button
+            android:id="@+id/btn_startServer"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:background="#4169E1"
+            android:onClick="onClick"
+            android:text="创建房间"
+            android:textColor="#ffffff" />
+
+        <Button
+            android:id="@+id/btn_connection"
+            android:layout_width="200dp"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:background="#20B2AA"
+            android:onClick="onClick"
+            android:text="加入房间" />
+    </LinearLayout>
 
 
-    <Button
-        android:id="@+id/btn_startServer"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="onClick"
-        android:text="创建房间" />
-
-    <Button
-        android:id="@+id/btn_connection"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:onClick="onClick"
-        android:text="加入房间" />
-
-</LinearLayout>
+</RelativeLayout>
