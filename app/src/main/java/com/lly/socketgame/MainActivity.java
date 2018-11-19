@@ -7,6 +7,7 @@ import android.view.View;
 import android.widget.TextView;
 
 import com.lly.socketgame.house.CreateHouseActivity;
+import com.lly.socketgame.utils.IpUtils;
 
 import java.io.IOException;
 import java.io.OutputStream;
@@ -20,7 +21,6 @@ public class MainActivity extends AppCompatActivity {
 
     private ServerSocket serverSocket;
 
-
     private TextView tv_address;
 
     Socket socket;
@@ -29,6 +29,8 @@ public class MainActivity extends AppCompatActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+        Log.v("test","Ip地址"+ IpUtils.getIPAddress(this).getProperty("ip"));
     }
 
 
