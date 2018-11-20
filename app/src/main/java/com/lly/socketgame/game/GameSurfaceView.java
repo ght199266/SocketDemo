@@ -18,7 +18,6 @@ import com.lly.socketgame.bean.ChessInfo;
 
 import java.util.ArrayList;
 import java.util.List;
-import java.util.Random;
 
 /**
  * WuZiGanmeSurfaceView[v 1.0.0]
@@ -52,6 +51,16 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
     private List<ChessInfo> chessInfos = new ArrayList<>();
 
+
+    private onLocationListener onLocationlistener;
+
+
+    private int userType;
+
+    public void setUserType(int userType) {
+        this.userType = userType;
+    }
+
     public GameSurfaceView(Context context) {
         this(context, null);
     }
@@ -69,6 +78,10 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         this.setKeepScreenOn(true);
     }
 
+
+    public void setOnLocationlistener(GameSurfaceView.onLocationListener onLocationlistener) {
+        this.onLocationlistener = onLocationlistener;
+    }
 
     @Override
     public void surfaceCreated(SurfaceHolder holder) {
@@ -147,11 +160,11 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         paint.setColor(Color.parseColor("#5E5E5E"));
         paint.setStrokeWidth(5);
 
-        Log.v("test", "mWidth:=" + mWidth);
+//        Log.v("test", "mWidth:=" + mWidth);
 
         mChessSpace = mWidth / 15;
 
-        Log.v("test", "mChessSpace:=" + mChessSpace);
+//        Log.v("test", "mChessSpace:=" + mChessSpace);
 
         int girdHeight = mChessSpace * LINE_MAX - mChessSpace;
 
@@ -195,7 +208,7 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         if (chessInfos.size() > 0) {
             for (ChessInfo info : chessInfos) {
 
-                paint.setColor(info.type == 0 ? Color.BLACK : Color.WHITE);
+                paint.setColor(info.type == 1 ? Color.BLACK : Color.WHITE);
 
                 mCanvas.drawCircle(info.x * mChessSpace + padding, info.y * mChessSpace + padding, mChessSpace / 3, paint);
             }
@@ -217,20 +230,40 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
                 float eventX = event.getX() - 30.0f;
                 float eventy = event.getY() - 30.0f;
 
-                drawChess(Math.round(eventX / mChessSpace), Math.round(eventy / mChessSpace));
+                int logcationX = Math.round(eventX / mChessSpace);
+                int logcationY = Math.round(eventy / mChessSpace);
+
+                drawChess(logcationX, logcationY);
+
+                if (onLocationlistener != null) {
+                    onLocationlistener.onLocation(logcationX, logcationY);
+                }
+
                 break;
 
         }
         return true;
     }
 
-
     /**
      * 绘制棋子
      */
     private void drawChess(int x, int y) {
-        ChessInfo chessInfo = new ChessInfo(x, y, new Random().nextInt(2));
+        ChessInfo chessInfo = new ChessInfo(x, y, userType);
         chessInfos.add(chessInfo);
     }
 
+    public interface onLocationListener {
+        void onLocation(int x, int y);
+    }
+
+
+    /**
+     * 添加一个棋子
+     *
+     * @param chessInfo
+     */
+    public void addChess(ChessInfo chessInfo) {
+        chessInfos.add(chessInfo);
+    }
 }

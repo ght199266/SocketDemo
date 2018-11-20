@@ -1,5 +1,7 @@
 package com.lly.socketgame.bean;
 
+import java.io.Serializable;
+
 /**
  * ChessInfo[v 1.0.0]
  * classes:com.lly.socketgame.bean.ChessInfo
@@ -9,7 +11,7 @@ package com.lly.socketgame.bean;
  * @time 15:57
  * @description
  */
-public class ChessInfo {
+public class ChessInfo implements Serializable {
 
     public int x;
     public int y;

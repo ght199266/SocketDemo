@@ -1,24 +1,17 @@
 package com.lly.socketgame;
 
-import android.graphics.Color;
-import android.os.Build;
-import android.os.Bundle;
-import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.TextView;
 
 import com.lly.socketgame.house.CreateHouseActivity;
 import com.lly.socketgame.utils.IpUtils;
 
 import java.io.IOException;
-import java.io.OutputStream;
 import java.net.ServerSocket;
 import java.net.Socket;
 
-public class MainActivity extends AppCompatActivity {
+public class MainActivity extends BaseActivity {
 
 
     private boolean isAccept = true;
@@ -29,24 +22,20 @@ public class MainActivity extends AppCompatActivity {
 
     Socket socket;
 
-    @Override
-    protected void onCreate(Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        //5.0版本及以上
-        Window window = getWindow();
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS
-                    | WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(Color.TRANSPARENT);
-            window.setNavigationBarColor(Color.TRANSPARENT);
-        }
-        setContentView(R.layout.activity_main);
 
+    @Override
+    protected int getLayoutId() {
+        return R.layout.activity_main;
+    }
+
+    @Override
+    protected void initView() {
         Log.v("test", "Ip地址" + IpUtils.getIPAddress(this).getProperty("ip"));
+    }
+
+    @Override
+    protected void initData() {
+
     }
 
 
@@ -74,57 +63,5 @@ public class MainActivity extends AppCompatActivity {
         }
     }
 
-
-    private void sendUrgentData() {
-        new Thread() {
-            @Override
-            public void run() {
-                super.run();
-                while (true) {
-                    Log.v("test", "发送心跳包：=");
-                    try {
-                        socket.sendUrgentData(0xff);
-                        OutputStream os = socket.getOutputStream();
-                        os.write(("好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字" +
-                                "好长好长的文字好长的文字的文字吵吵的文字吵吵的文字吵吵的文" +
-                                "好长好长的文字好长的文字的文字吵吵的文字吵吵的文字吵吵的文字" +
-                                "好长好长的文字好长的文字的文字吵吵的文字吵吵的文字吵吵的文字" +
-                                "好长好长的文字好长的文字的文字吵吵的文字吵吵的文字吵吵的文字" +
-                                "好长好长的文字好长的文字的文字吵吵的文字吵吵的文字吵吵的文字" +
-                                "好长好长的文字好长的文字的文字吵吵的文字吵吵的文字吵吵的文字" +
-                                "好长好长的文字好长的文字的文字吵吵的文字吵吵的文字吵吵的文字" +
-                                "字").getBytes());
-                    } catch (IOException e) {
-                        Log.v("test", "发送心跳包出错了");
-                        e.printStackTrace();
-                    }
-                    try {
-                        Thread.sleep(4000);
-                    } catch (InterruptedException e) {
-                        e.printStackTrace();
-                    }
-                }
-            }
-        }.start();
-
-    }
 }
 

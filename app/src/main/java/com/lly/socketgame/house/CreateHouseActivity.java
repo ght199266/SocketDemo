@@ -3,33 +3,27 @@ package com.lly.socketgame.house;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.graphics.Color;
-import android.os.Build;
-import android.os.Bundle;
-import android.support.annotation.Nullable;
 import android.support.v7.app.AlertDialog;
-import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
-import android.view.Window;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
-import android.widget.Toast;
 
+import com.lly.socketgame.BaseActivity;
 import com.lly.socketgame.R;
 import com.lly.socketgame.adapter.MessageAdapter;
+import com.lly.socketgame.game.WuZiGameActivity;
 import com.lly.socketgame.messag.MessageObj;
+import com.lly.socketgame.socket.ConnectManage;
+import com.lly.socketgame.socket.IAcceptClientListener;
+import com.lly.socketgame.socket.IMessageCallBack;
+import com.lly.socketgame.socket.IMessageSendListener;
+import com.lly.socketgame.socket.SocketDevice;
 
-import java.io.IOException;
-import java.io.ObjectInputStream;
-import java.io.ObjectOutputStream;
-import java.io.OutputStream;
-import java.net.ServerSocket;
 import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
@@ -43,26 +37,19 @@ import java.util.List;
  * @time 10:16
  * @description
  */
-public class CreateHouseActivity extends AppCompatActivity {
+public class CreateHouseActivity extends BaseActivity implements IMessageCallBack, View.OnClickListener {
 
 
     RecyclerView recyclerView;
 
     EditText ed_input;
-    Button btn_send;
+    Button btn_send, start_game;
     ImageView iv_other_head;
-
-    private static final int SERVER_PORT = 8000;
-
-    private ServerSocket serverSocket;
 
 
     private static final String houseName = "盲僧";
 
     private static final String otheName = "萌提莫";
-
-
-    private boolean isDestory = false;
 
 
     //房主
@@ -76,9 +63,9 @@ public class CreateHouseActivity extends AppCompatActivity {
     private List<String> list = new ArrayList<>();
     MessageAdapter messageAdapter;
 
-    private OutputStream outputStream;
 
-    Socket socket;
+    private SocketDevice mSocketDevice;
+
 
     public static void startCreateHoseActivity(Context ctx, int type) {
         Intent intent = new Intent(ctx, CreateHouseActivity.class);
@@ -87,102 +74,65 @@ public class CreateHouseActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onCreate(@Nullable Bundle savedInstanceState) {
-        super.onCreate(savedInstanceState);
-        Window window = getWindow();
-//5.0版本及以上
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP) {
-            window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS
-                    | WindowManager.LayoutParams.FLAG_TRANSLUCENT_NAVIGATION);
-            window.getDecorView().setSystemUiVisibility(View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-                    | View.SYSTEM_UI_FLAG_LAYOUT_HIDE_NAVIGATION
-                    | View.SYSTEM_UI_FLAG_LAYOUT_STABLE);
-            window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS);
-            window.setStatusBarColor(Color.TRANSPARENT);
-            window.setNavigationBarColor(Color.TRANSPARENT);
-        }
-
-        setContentView(R.layout.create_house_layout);
-
-
-        initView();
-        initData();
-        setAdapter();
+    protected int getLayoutId() {
+        return R.layout.create_house_layout;
     }
 
-
     /**
-     *
+     * 填充数据
      */
     private void setAdapter() {
         messageAdapter = new MessageAdapter(list);
         recyclerView = findViewById(R.id.recycleview);
         recyclerView.setLayoutManager(new LinearLayoutManager(this, LinearLayoutManager.VERTICAL, false));
         recyclerView.setAdapter(messageAdapter);
+
     }
 
     /**
      * 创建数据
      */
-    private void initData() {
+    protected void initData() {
         switch (current) {
             case create://房主
-                createServer();
+                //初始化服务器
+                ConnectManage.getInstance().initServer(new IAcceptClientListener() {
+                    @Override
+                    public void onConnect(SocketDevice socket) {
+                        CreateHouseActivity.this.mSocketDevice = socket;
+                        addMessageAdapter("提莫队长 加入了游戏");
+                        isShowHead(true);
+                    }
+
+                    @Override
+                    public void onDisconnect(Socket socket) {
+                        isShowHead(false);
+                        Log.v("test", "设备连接断开：=");
+                    }
+                });
+                ConnectManage.getInstance().registerMessageListener(this);
                 break;
             case other://其他玩家
-                connectServer();
+                ConnectManage.getInstance().connectServer(new IAcceptClientListener() {
+                    @Override
+                    public void onConnect(SocketDevice socket) {
+                        isShowHead(true);
+                        CreateHouseActivity.this.mSocketDevice = socket;
+                        Log.v("test", "连接服务器成功：=");
+                    }
+
+                    @Override
+                    public void onDisconnect(Socket socket) {
+                        showDialog();
+                    }
+                });
+                ConnectManage.getInstance().registerMessageListener(this);
                 break;
             default:
         }
+
     }
 
-    /**
-     * 连接服务器
-     */
-    private void connectServer() {
-        new Thread() {
-            @Override
-            public void run() {
-                super.run();
-                try {
-                    socket = new Socket("192.168.2.204", 8000);
-                    clientSend();
-                    isShowHead(true);
-                    outputStream = socket.getOutputStream();
-                    getClientMessage(socket);
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Log.v("test", "房间加入失败");
-                }
-            }
-        }.start();
-    }
-
-
-    private void clientSend() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    while (!isDestory) {
-                        try {
-                            Thread.sleep(200);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        if (socket != null) {
-                            socket.sendUrgentData(0xff);
-                        }
-                        Log.v("test", "客户端开送心跳包");
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    Log.v("test", "客户端开送心跳包");
-                    showDialog();
-                }
-            }
-        }).start();
-    }
 
     private void showDialog() {
         runOnUiThread(new Runnable() {
@@ -204,43 +154,6 @@ public class CreateHouseActivity extends AppCompatActivity {
         });
     }
 
-    /**
-     * 创建服务器等待其他玩家加入
-     */
-    private void createServer() {
-        try {
-            serverSocket = new ServerSocket(SERVER_PORT);
-            //开启一个线程监听客户端连接
-            new Thread(new AcceptClientTask()).start();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
-
-    /**
-     * 监听客户端连接的Task
-     */
-    private class AcceptClientTask implements Runnable {
-        @Override
-        public void run() {
-            if (serverSocket == null) {
-                return;
-            }
-            try {
-                while (!isDestory) {
-                    socket = serverSocket.accept();
-                    addMessageAdapter(otheName + " 加入了游戏");
-                    isShowHead(true);
-                    //获取客户端消息的
-                    sendUrgentData();
-                    outputStream = socket.getOutputStream();
-                    getClientMessage(socket);
-                }
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-        }
-    }
 
     private void isShowHead(final boolean isShow) {
         runOnUiThread(new Runnable() {
@@ -249,33 +162,6 @@ public class CreateHouseActivity extends AppCompatActivity {
                 iv_other_head.setVisibility(isShow ? View.VISIBLE : View.GONE);
             }
         });
-    }
-
-    /**
-     * 每隔一段时间发送心跳包
-     */
-    private void sendUrgentData() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    while (!isDestory) {
-                        try {
-                            Thread.sleep(200);
-                        } catch (InterruptedException e) {
-                            e.printStackTrace();
-                        }
-                        if (socket != null) {
-                            socket.sendUrgentData(0xff);
-                        }
-                    }
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    isShowHead(false);
-                    addMessageAdapter(otheName + " 离开了游戏");
-                }
-            }
-        }).start();
     }
 
 
@@ -292,110 +178,77 @@ public class CreateHouseActivity extends AppCompatActivity {
         });
     }
 
-    private void sendMessage(final String str) {
-        if (outputStream == null) {
-            Toast.makeText(CreateHouseActivity.this, "消息发送失败", Toast.LENGTH_SHORT).show();
-            return;
-        }
-        new Thread() {
-            @Override
-            public void run() {
-                super.run();
-                try {
-                    MessageObj messageObj = new MessageObj();
-                    messageObj.setType(1);
-                    messageObj.setContet(str);
-                    ObjectOutputStream objectOutput = new ObjectOutputStream(outputStream);
-                    objectOutput.writeObject(messageObj);
-                    objectOutput.flush();
-                    addMessageAdapter(current == 1 ? "我:" + str : "我:" + str);
-                    runOnUiThread(new Runnable() {
-                        @Override
-                        public void run() {
-                            ed_input.setText("");
-                        }
-                    });
-                } catch (IOException e) {
-                    e.printStackTrace();
-                    showMainThreadToast("消息发送失败");
-                }
-            }
-        }.start();
-    }
-
-    private void showMainThreadToast(final String str) {
-        runOnUiThread(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(CreateHouseActivity.this, str, Toast.LENGTH_SHORT).show();
-            }
-        });
-    }
-
     /**
      * 初始化View
      */
-    private void initView() {
+    protected void initView() {
         current = getIntent().getIntExtra("Type", 0);
-
         ed_input = findViewById(R.id.ed_input);
         btn_send = findViewById(R.id.btn_send);
         iv_other_head = findViewById(R.id.iv_other_head);
+        start_game = findViewById(R.id.start_game);
+        start_game.setVisibility(current == 1 ? View.VISIBLE : View.GONE);
+        start_game.setOnClickListener(this);
 
         btn_send.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                if (!TextUtils.isEmpty(ed_input.getText().toString())) {
-                    sendMessage(ed_input.getText().toString());
+                final String content = ed_input.getText().toString();
+                if (!TextUtils.isEmpty(content)) {
+                    MessageObj messageObj = new MessageObj();
+                    messageObj.setType(1);
+                    messageObj.setContet(content);
+                    mSocketDevice.sendMessage(messageObj, new IMessageSendListener() {
+                        @Override
+                        public void onSuccess() {
+                            addMessageAdapter(current == 1 ? "我:" + content : "我:" + content);
+                            ed_input.setText("");
+                        }
+
+                        @Override
+                        public void onFail() {
+
+                        }
+                    });
                 }
             }
         });
-    }
-
-    /**
-     * 获取客户端的消息
-     *
-     * @param socket
-     */
-    private void getClientMessage(Socket socket) {
-        try {
-            while (!isDestory) {
-                ObjectInputStream inputStream = new ObjectInputStream(socket.getInputStream());
-                final MessageObj obj = (MessageObj) inputStream.readObject();
-                runOnUiThread(new Runnable() {
-                    @Override
-                    public void run() {
-                        if (current == create) {
-                            addMessageAdapter(otheName + ":" + obj.getContet());
-                        } else {
-                            addMessageAdapter(houseName + ":" + obj.getContet());
-                        }
-                    }
-                });
-            }
-        } catch (IOException | ClassNotFoundException e) {
-            e.printStackTrace();
-        }
+        setAdapter();
     }
 
     @Override
     protected void onDestroy() {
         super.onDestroy();
-        isDestory = true;
-        if (serverSocket != null) {
-            try {
-                serverSocket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
+//        ConnectManage.getInstance().onDestroy();
+        ConnectManage.getInstance().registerMessageListener(null);
+    }
+
+    @Override
+    public void acceptMessage(MessageObj messageObj) {
+        if (messageObj.getType() == 1) {
+            addMessageAdapter(current == 1 ? otheName + ":" + messageObj.getContet() : houseName + ":" + messageObj.getContet());
+        } else if (messageObj.getType() == 2) {//开始游戏
+            WuZiGameActivity.startGameActivity(this, current);
         }
-        try {
-            if (socket != null) {
-                socket.close();
-                socket = null;
-            }
-        } catch (IOException e) {
-            e.printStackTrace();
+    }
+
+    @Override
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.start_game:
+                MessageObj messageObj = new MessageObj();
+                messageObj.setType(2);
+                mSocketDevice.sendMessage(messageObj, new IMessageSendListener() {
+                    @Override
+                    public void onSuccess() {
+                        WuZiGameActivity.startGameActivity(CreateHouseActivity.this, current);
+                    }
+
+                    @Override
+                    public void onFail() {
+                    }
+                });
+                break;
         }
     }
 }
