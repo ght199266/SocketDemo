@@ -1,7 +1,5 @@
 package com.lly.socketgame.socket;
 
-import java.net.Socket;
-
 /**
  * IAcceptClientListener[v 1.0.0]
  * classes:com.lly.socketgame.socket.IAcceptClientListener
@@ -14,9 +12,5 @@ import java.net.Socket;
 public interface IAcceptClientListener {
 
     void onConnect(SocketDevice socket);
-
-
-    void onDisconnect(Socket socket);
-
 
 }

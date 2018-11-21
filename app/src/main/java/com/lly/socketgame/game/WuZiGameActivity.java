@@ -3,6 +3,7 @@ package com.lly.socketgame.game;
 import android.content.Context;
 import android.content.Intent;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.lly.socketgame.BaseActivity;
 import com.lly.socketgame.R;
@@ -53,11 +54,13 @@ public class WuZiGameActivity extends BaseActivity {
         ConnectManage.getInstance().registerMessageListener(new IMessageCallBack() {
             @Override
             public void acceptMessage(MessageObj messageObj) {
-                Log.v("test", "收到消息" + messageObj.getType());
-                Log.v("test", "收到消息" + messageObj.getChessInfo().toString());
                 if (messageObj.getType() == 3) {
                     ChessInfo chessInfo = messageObj.getChessInfo();
                     mSurfaceView.addChess(chessInfo);
+                    mSurfaceView.setDisableChess(true);
+                } else if (messageObj.getType() == 4) {//你输了
+                    mSurfaceView.setDisableChess(false);
+                    Toast.makeText(WuZiGameActivity.this, "你输了", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -73,6 +76,27 @@ public class WuZiGameActivity extends BaseActivity {
                 messageObj.setType(3);
                 ChessInfo chessInfo = new ChessInfo(x, y, userType);
                 messageObj.setChessInfo(chessInfo);
+                SocketDevice socketDevice = userType == 1 ? ConnectManage.getInstance().getClientDevice() : ConnectManage.getInstance().getServerDevice();
+                socketDevice.sendMessage(messageObj, new IMessageSendListener() {
+                    @Override
+                    public void onSuccess() {
+                        Log.v("test", "消息发送成功");
+                    }
+
+                    @Override
+                    public void onFail() {
+
+                    }
+                });
+            }
+
+            @Override
+            public void onWin() {
+
+                Toast.makeText(WuZiGameActivity.this, "恭喜你,你胜利了！！", Toast.LENGTH_SHORT).show();
+
+                MessageObj messageObj = new MessageObj();
+                messageObj.setType(4);
                 SocketDevice socketDevice = userType == 1 ? ConnectManage.getInstance().getClientDevice() : ConnectManage.getInstance().getServerDevice();
                 socketDevice.sendMessage(messageObj, new IMessageSendListener() {
                     @Override

@@ -15,6 +15,7 @@ import android.view.SurfaceView;
 
 import com.lly.socketgame.R;
 import com.lly.socketgame.bean.ChessInfo;
+import com.lly.socketgame.utils.ChessUtils;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -45,8 +46,15 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
     private int mChessSpace;
 
+    //是否允许下棋
+    private boolean isDisableChess = true;
+
 
     private static final int LINE_MAX = 15;
+
+
+    //定义一个二维数组,保存棋子的坐标
+    private int[][] AllChess = new int[LINE_MAX][LINE_MAX];
 
 
     private List<ChessInfo> chessInfos = new ArrayList<>();
@@ -79,8 +87,17 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     }
 
 
+    public boolean isDisableChess() {
+        return isDisableChess;
+    }
+
+    public void setDisableChess(boolean disableChess) {
+        isDisableChess = disableChess;
+    }
+
     public void setOnLocationlistener(GameSurfaceView.onLocationListener onLocationlistener) {
         this.onLocationlistener = onLocationlistener;
+
     }
 
     @Override
@@ -222,21 +239,25 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     public boolean onTouchEvent(MotionEvent event) {
         switch (event.getAction()) {
             case MotionEvent.ACTION_UP:
-//                Log.v("test", "mChessSpace：" + mChessSpace);
-                Log.v("test", "坐标：" + event.getX());
-                Log.v("test", "坐标：" + event.getY());
-                Log.v("test", "坐标：" + event.getY() / mChessSpace);
-
-                float eventX = event.getX() - 30.0f;
-                float eventy = event.getY() - 30.0f;
-
-                int logcationX = Math.round(eventX / mChessSpace);
-                int logcationY = Math.round(eventy / mChessSpace);
-
-                drawChess(logcationX, logcationY);
-
-                if (onLocationlistener != null) {
-                    onLocationlistener.onLocation(logcationX, logcationY);
+                if (isDisableChess) {
+                    float eventX = event.getX() - 30.0f;
+                    float eventy = event.getY() - 30.0f;
+                    int logcationX = Math.round(eventX / mChessSpace);
+                    int logcationY = Math.round(eventy / mChessSpace);
+                    if (isChess(logcationX, logcationY)) {
+                        AllChess[logcationX][logcationY] = userType;
+                        drawChess(logcationX, logcationY);
+                        if (ChessUtils.isCheckWin(AllChess, logcationX, logcationY)) {//胜利
+                            onLocationlistener.onWin();
+                        } else {
+                            if (onLocationlistener != null) {
+                                onLocationlistener.onLocation(logcationX, logcationY);
+                            }
+                        }
+                        isDisableChess = false;
+                    } else {
+                        Log.v("test", "已经有棋子了");
+                    }
                 }
 
                 break;
@@ -244,6 +265,15 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         }
         return true;
     }
+
+
+    /**
+     * 是否有棋子
+     */
+    private boolean isChess(int x, int y) {
+        return AllChess[x][y] == 0;
+    }
+
 
     /**
      * 绘制棋子
@@ -255,6 +285,8 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
     public interface onLocationListener {
         void onLocation(int x, int y);
+
+        void onWin();
     }
 
 

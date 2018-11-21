@@ -24,7 +24,6 @@ import com.lly.socketgame.socket.IMessageCallBack;
 import com.lly.socketgame.socket.IMessageSendListener;
 import com.lly.socketgame.socket.SocketDevice;
 
-import java.net.Socket;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -103,12 +102,6 @@ public class CreateHouseActivity extends BaseActivity implements IMessageCallBac
                         addMessageAdapter("提莫队长 加入了游戏");
                         isShowHead(true);
                     }
-
-                    @Override
-                    public void onDisconnect(Socket socket) {
-                        isShowHead(false);
-                        Log.v("test", "设备连接断开：=");
-                    }
                 });
                 ConnectManage.getInstance().registerMessageListener(this);
                 break;
@@ -121,10 +114,6 @@ public class CreateHouseActivity extends BaseActivity implements IMessageCallBac
                         Log.v("test", "连接服务器成功：=");
                     }
 
-                    @Override
-                    public void onDisconnect(Socket socket) {
-                        showDialog();
-                    }
                 });
                 ConnectManage.getInstance().registerMessageListener(this);
                 break;

@@ -20,7 +20,6 @@ import java.net.Socket;
  */
 public class ConnectManage {
 
-
     private android.os.Handler handler = new android.os.Handler(Looper.myLooper());
 
     private static final String IP_ADDRESS = "192.168.2.204";
@@ -86,16 +85,14 @@ public class ConnectManage {
                         if (listener != null) {
                             listener.onConnect(mServerSocket);
                         }
-//
-//                        pollCheckConnect(mClientSocke, new IConnectListener() {
-//                            @Override
-//                            public void disConnect() {
-//                                if (mIAcceptClientListener != null) {
-//                                    mIAcceptClientListener.onDisconnect(mClientSocke);
-//                                }
-//                            }
-//                        });
-                        ClientTask clientTask = new ClientTask(socket, mImessageCallBack);
+                        ClientTask clientTask = new ClientTask(socket, new IMessageCallBack() {
+                            @Override
+                            public void acceptMessage(MessageObj messageObj) {
+                                if (mImessageCallBack != null) {
+                                    mImessageCallBack.acceptMessage(messageObj);
+                                }
+                            }
+                        });
                         Thread thread = new Thread(clientTask);
                         thread.start();
                     } catch (IOException e) {
