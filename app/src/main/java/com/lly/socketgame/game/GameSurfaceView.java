@@ -29,7 +29,7 @@ import java.util.List;
  * @time 14:00
  * @description
  */
-public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Runnable {
+public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callback, Runnable, IGameOperation {
 
 
     private SurfaceHolder mSurfaceHolder;
@@ -43,19 +43,61 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
 
     private int mHeight;
 
-
-    private int mChessSpace;
-
     //是否允许下棋
     private boolean isDisableChess = true;
 
 
+    /**
+     * 棋盘 15 x 15;
+     */
     private static final int LINE_MAX = 15;
 
+    /**
+     * 棋盘四周Padding
+     */
+    private static final float CHESS_PADDING = 30;
 
-    //定义一个二维数组,保存棋子的坐标
+    /**
+     * 棋盘背景图片
+     */
+    private Bitmap mChessBackground;
+
+
+    /**
+     * 棋盘高度
+     */
+    private int mChessHeight;
+
+    /**
+     * 二维数组保存棋子落下的X、Y坐标
+     */
     private int[][] AllChess = new int[LINE_MAX][LINE_MAX];
 
+    /**
+     * 每个宫格的大小
+     */
+    private int mChess_gird_size;
+
+    /**
+     * 绘制棋盘宫格的画笔
+     */
+    private Paint mChessLinePaint;
+
+    /**
+     * 宫格画笔的颜色
+     */
+    private String mChessLineColor = "#5E5E5E";
+
+    /**
+     * 宫格画笔的宽度
+     */
+    private int mChessLineWidth = 4;
+
+
+    /**
+     * 每30帧刷新一次屏幕
+     **/
+    public static final int TIME_IN_FRAME = 100;
 
     private List<ChessInfo> chessInfos = new ArrayList<>();
 
@@ -84,11 +126,53 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         setFocusable(true);
         setFocusableInTouchMode(true);
         this.setKeepScreenOn(true);
+
+        init();
     }
 
+    /**
+     * 初始化
+     */
+    private void init() {
+        mChessLinePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        mChessLinePaint.setColor(Color.parseColor(mChessLineColor));
+        mChessLinePaint.setStrokeWidth(mChessLineWidth);
+        mChessBackground = BitmapFactory.decodeResource(getResources(), R.mipmap.bg_wuzi);
+    }
 
+    /**
+     * 是否禁止下棋
+     */
     public boolean isDisableChess() {
         return isDisableChess;
+    }
+
+    /**
+     * 是否能悔棋
+     */
+    public boolean isGoBackChess() {
+        if (isDisableChess && chessInfos.size() > 0) {
+            for (ChessInfo info : chessInfos) {
+                if (info.type == userType) {
+                    return true;
+                }
+            }
+        }
+        return false;
+    }
+
+    /**
+     * 禁止下棋
+     */
+    public void disableChess() {
+        isDisableChess = true;
+    }
+
+    /**
+     * 启用下棋
+     */
+    public void enableChess() {
+        isDisableChess = false;
     }
 
     public void setDisableChess(boolean disableChess) {
@@ -116,17 +200,9 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         isDrawing = false;
     }
 
-    /**
-     * 每30帧刷新一次屏幕
-     **/
-    public static final int TIME_IN_FRAME = 200;
 
     @Override
     public void run() {
-//        while (isDrawing) {
-//            draw();
-//        }
-
         while (isDrawing) {
             long startTime = System.currentTimeMillis();
             synchronized (mSurfaceHolder) {
@@ -151,7 +227,7 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     private void draw() {
         try {
             mCanvas = mSurfaceHolder.lockCanvas();
-            drawGrid();
+            onDrawChess();
         } catch (Exception e) {
             e.printStackTrace();
         } finally {
@@ -160,6 +236,15 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         }
     }
 
+    @Override
+    protected void onMeasure(int widthMeasureSpec, int heightMeasureSpec) {
+        super.onMeasure(widthMeasureSpec, heightMeasureSpec);
+        int specMode = MeasureSpec.getMode(heightMeasureSpec);
+        int specSize = MeasureSpec.getSize(widthMeasureSpec);
+        mChess_gird_size = (int) ((specSize - (CHESS_PADDING * 2)) / (LINE_MAX - 1));
+        setMeasuredDimension(specSize, (int) ((mChess_gird_size * (LINE_MAX - 1)) + CHESS_PADDING * 2));
+
+    }
 
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
@@ -168,100 +253,113 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         mHeight = h;
     }
 
+
+    /**
+     * 绘制棋盘背景
+     */
+    private void drawChessBackground() {
+        //背景图片缩放
+        Matrix matrix = new Matrix();
+        float scaleX = mWidth * 1.0f / mChessBackground.getWidth();
+        float scaleY = (mChessHeight + CHESS_PADDING * 2) * 1.0f / mChessBackground.getHeight();
+        matrix.setScale(scaleX, scaleY);
+        //绘制背景
+        mCanvas.drawBitmap(mChessBackground, matrix, mChessLinePaint);
+    }
+
+
+    /**
+     * 绘制宫格线
+     */
+    private void drawChessGrid() {
+        mChessLinePaint.setColor(Color.parseColor(mChessLineColor));
+        mChessLinePaint.setStrokeWidth(mChessLineWidth);
+        for (int i = 0; i < LINE_MAX; i++) {
+            mCanvas.drawLine(CHESS_PADDING, i * mChess_gird_size + CHESS_PADDING, (LINE_MAX - 1) * mChess_gird_size + CHESS_PADDING, i * mChess_gird_size + CHESS_PADDING, mChessLinePaint);
+            mCanvas.drawLine(i * mChess_gird_size + CHESS_PADDING, CHESS_PADDING, i * mChess_gird_size + CHESS_PADDING, mChessHeight + CHESS_PADDING, mChessLinePaint);
+        }
+    }
+
+
+    /**
+     * 绘制五子棋中的中间和四周的五个点
+     */
+    private void drawChessPoint() {
+        mChessLinePaint.setColor(Color.BLACK);
+        mChessLinePaint.setStrokeWidth(15);
+//        mChessLinePaint.setStrokeCap(Paint.Cap.ROUND);
+
+        float centerX = mChess_gird_size * 1.0f * (LINE_MAX / 2) + CHESS_PADDING;
+        float centerY = mChess_gird_size * 1.0f * (LINE_MAX / 2) + CHESS_PADDING;
+
+        //最中心的圆点
+        mCanvas.drawPoint(centerX, centerY, mChessLinePaint);
+
+        //四周的点
+        int space = mChess_gird_size * 4;
+        mCanvas.drawPoint(centerX - space, centerY - space, mChessLinePaint);//左上
+        mCanvas.drawPoint(centerX - space, centerY + space, mChessLinePaint);//左下
+
+        mCanvas.drawPoint(centerX + space, centerY - space, mChessLinePaint);//右上
+        mCanvas.drawPoint(centerX + space, centerY + space, mChessLinePaint);//右下
+    }
+
+
+    /**
+     * 绘制棋子
+     */
+    private void drawChess() {
+        if (chessInfos.size() > 0) {
+            for (ChessInfo info : chessInfos) {
+                mChessLinePaint.setColor(info.type == 1 ? Color.BLACK : Color.WHITE);
+                mCanvas.drawCircle(info.x * mChess_gird_size + CHESS_PADDING, info.y * mChess_gird_size + CHESS_PADDING, mChess_gird_size / 3, mChessLinePaint);
+            }
+        }
+    }
+
     /**
      * 绘制棋盘
      */
-    private void drawGrid() {
-        //使用画笔
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setColor(Color.parseColor("#5E5E5E"));
-        paint.setStrokeWidth(5);
-
-//        Log.v("test", "mWidth:=" + mWidth);
-
-        mChessSpace = mWidth / 15;
-
-//        Log.v("test", "mChessSpace:=" + mChessSpace);
-
-        int girdHeight = mChessSpace * LINE_MAX - mChessSpace;
-
-        Bitmap bitmap = BitmapFactory.decodeResource(getResources(), R.mipmap.bg_wuzi);
-
-        Matrix matrix = new Matrix();
-
-        float scalex = mWidth * 1.0f / bitmap.getWidth();
-        float scaley = (girdHeight + 60) * 1.0f / bitmap.getHeight();
-
-
-        matrix.setScale(scalex, scaley);
-
-        mCanvas.drawBitmap(bitmap, matrix, paint);
-
-        int padding = 30;
-
-        for (int i = 0; i < LINE_MAX; i++) {
-            mCanvas.drawLine(padding, i * mChessSpace + padding, mWidth - padding, i * mChessSpace + padding, paint);
-
-            mCanvas.drawLine(i * mChessSpace + padding, padding, i * mChessSpace + padding, girdHeight + padding, paint);
-        }
-
-
-        paint.setColor(Color.BLACK);
-        paint.setStrokeWidth(15);
-        paint.setStrokeCap(Paint.Cap.ROUND);
-        float centerX = mChessSpace * 1.0f * (LINE_MAX / 2) + padding;
-        float centerY = mChessSpace * 1.0f * (LINE_MAX / 2) + padding;
-        //最中心的圆点
-        mCanvas.drawPoint(centerX, centerY, paint);
-        //四周
-        int sizhou = mChessSpace * 4;
-        mCanvas.drawPoint(centerX - sizhou, centerY - sizhou, paint);//左上
-        mCanvas.drawPoint(centerX - sizhou, centerY + sizhou, paint);//左下
-
-        mCanvas.drawPoint(centerX + sizhou, centerY - sizhou, paint);//右上
-        mCanvas.drawPoint(centerX + sizhou, centerY + sizhou, paint);//右下
-
-
-        if (chessInfos.size() > 0) {
-            for (ChessInfo info : chessInfos) {
-
-                paint.setColor(info.type == 1 ? Color.BLACK : Color.WHITE);
-
-                mCanvas.drawCircle(info.x * mChessSpace + padding, info.y * mChessSpace + padding, mChessSpace / 3, paint);
-            }
-        }
-
-
+    private void onDrawChess() {
+        mChessHeight = mChess_gird_size * LINE_MAX - mChess_gird_size;
+        //绘制背景
+        drawChessBackground();
+        //绘制宫格线
+        drawChessGrid();
+        //绘制四周的点
+        drawChessPoint();
+        //绘制棋子
+        drawChess();
     }
 
 
     @Override
     public boolean onTouchEvent(MotionEvent event) {
+        if (isDisableChess)
+            return true;
         switch (event.getAction()) {
             case MotionEvent.ACTION_UP:
-                if (isDisableChess) {
-                    float eventX = event.getX() - 30.0f;
-                    float eventy = event.getY() - 30.0f;
-                    int logcationX = Math.round(eventX / mChessSpace);
-                    int logcationY = Math.round(eventy / mChessSpace);
-                    if (isChess(logcationX, logcationY)) {
-                        AllChess[logcationX][logcationY] = userType;
-                        drawChess(logcationX, logcationY);
-                        if (ChessUtils.isCheckWin(AllChess, logcationX, logcationY)) {//胜利
+                float eventX = event.getX() - CHESS_PADDING;
+                float eventY = event.getY() - CHESS_PADDING;
+                if (eventX > 0 && eventY > 0) {
+                    int locationX = Math.round(eventX / mChess_gird_size);
+                    int locationY = Math.round(eventY / mChess_gird_size);
+                    if (isChess(locationX, locationY)) {
+                        AllChess[locationX][locationY] = userType;
+                        drawChess(locationX, locationY);
+                        if (ChessUtils.isCheckWin(AllChess, locationX, locationY)) {//胜利
                             onLocationlistener.onWin();
                         } else {
                             if (onLocationlistener != null) {
-                                onLocationlistener.onLocation(logcationX, logcationY);
+                                onLocationlistener.onLocation(locationX, locationY);
                             }
                         }
-                        isDisableChess = false;
+                        isDisableChess = true;
                     } else {
                         Log.v("test", "已经有棋子了");
                     }
                 }
-
                 break;
-
         }
         return true;
     }
@@ -274,7 +372,6 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         return AllChess[x][y] == 0;
     }
 
-
     /**
      * 绘制棋子
      */
@@ -283,19 +380,28 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         chessInfos.add(chessInfo);
     }
 
+    @Override
+    public boolean addChess(ChessInfo chessInfo) {
+        if (chessInfos.size() < (LINE_MAX * LINE_MAX)) {
+            chessInfos.add(chessInfo);
+            enableChess();
+            return true;
+        }
+        return false;
+    }
+
+    @Override
+    public void onGoBack() {
+        ChessInfo chessInfo = chessInfos.get(chessInfos.size() - 1);
+        AllChess[chessInfo.x][chessInfo.y] = 0;
+        chessInfos.remove(chessInfos.size() - 1);
+        enableChess();
+    }
+
     public interface onLocationListener {
         void onLocation(int x, int y);
 
         void onWin();
     }
 
-
-    /**
-     * 添加一个棋子
-     *
-     * @param chessInfo
-     */
-    public void addChess(ChessInfo chessInfo) {
-        chessInfos.add(chessInfo);
-    }
 }

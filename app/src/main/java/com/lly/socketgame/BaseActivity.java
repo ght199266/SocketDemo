@@ -8,6 +8,7 @@ import android.support.v7.app.AppCompatActivity;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
+import android.widget.Toast;
 
 /**
  * BaseActivity[v 1.0.0]
@@ -45,4 +46,9 @@ public abstract class BaseActivity extends AppCompatActivity {
     protected abstract void initView();
 
     protected abstract void initData();
+
+
+    protected void showTaost(String str) {
+        Toast.makeText(this, str, Toast.LENGTH_SHORT).show();
+    }
 }

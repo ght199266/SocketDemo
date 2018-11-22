@@ -87,9 +87,14 @@ public class ConnectManage {
                         }
                         ClientTask clientTask = new ClientTask(socket, new IMessageCallBack() {
                             @Override
-                            public void acceptMessage(MessageObj messageObj) {
+                            public void acceptMessage(final MessageObj messageObj) {
                                 if (mImessageCallBack != null) {
-                                    mImessageCallBack.acceptMessage(messageObj);
+                                    handler.post(new Runnable() {
+                                        @Override
+                                        public void run() {
+                                            mImessageCallBack.acceptMessage(messageObj);
+                                        }
+                                    });
                                 }
                             }
                         });
