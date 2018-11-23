@@ -2,25 +2,17 @@ package com.lly.socketgame;
 
 import android.util.Log;
 import android.view.View;
-import android.widget.TextView;
+import android.widget.CompoundButton;
+import android.widget.ToggleButton;
 
 import com.lly.socketgame.house.CreateHouseActivity;
+import com.lly.socketgame.service.AudioServer;
 import com.lly.socketgame.utils.IpUtils;
-
-import java.io.IOException;
-import java.net.ServerSocket;
-import java.net.Socket;
 
 public class MainActivity extends BaseActivity {
 
 
-    private boolean isAccept = true;
-
-    private ServerSocket serverSocket;
-
-    private TextView tv_address;
-
-    Socket socket;
+    private ToggleButton toggleButton;
 
 
     @Override
@@ -31,26 +23,23 @@ public class MainActivity extends BaseActivity {
     @Override
     protected void initView() {
         Log.v("test", "Ip地址" + IpUtils.getIPAddress(this).getProperty("ip"));
+        toggleButton = findViewById(R.id.toggleButton);
     }
 
     @Override
     protected void initData() {
-
-    }
-
-
-    @Override
-    protected void onDestroy() {
-        super.onDestroy();
-        isAccept = false;
-        if (socket != null) {
-            try {
-                socket.close();
-            } catch (IOException e) {
-                e.printStackTrace();
+        toggleButton.setOnCheckedChangeListener(new CompoundButton.OnCheckedChangeListener() {
+            @Override
+            public void onCheckedChanged(CompoundButton buttonView, boolean isChecked) {
+                if (isChecked) {
+                    AudioServer.startAudioServer(MainActivity.this);
+                } else {
+                    AudioServer.stopAudioServer(MainActivity.this);
+                }
             }
-        }
+        });
     }
+
 
     public void onClick(View v) {
         switch (v.getId()) {

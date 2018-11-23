@@ -29,6 +29,10 @@ public class SocketDevice {
         this.mHandler = handler;
     }
 
+    public Socket getSocket() {
+        return mSocket;
+    }
+
     /**
      * 发送消息
      */

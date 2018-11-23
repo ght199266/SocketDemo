@@ -5,6 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@mipmap/main_bg"
+    android:fitsSystemWindows="true"
     android:orientation="vertical"
     tools:context=".MainActivity">
 
@@ -31,8 +32,17 @@
             android:layout_marginTop="10dp"
             android:background="#20B2AA"
             android:onClick="onClick"
-            android:text="加入房间" />
+            android:text="加入对局" />
     </LinearLayout>
+
+    <ToggleButton
+        android:id="@+id/toggleButton"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentTop="true"
+        android:layout_alignParentEnd="true"
+        android:textOff="@string/audio_open_str"
+        android:textOn="@string/audio_close_str" />
 
 
 </RelativeLayout>

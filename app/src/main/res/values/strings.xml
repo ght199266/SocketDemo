@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">SocketGameDemo</string>
+    <string name="audio_open_str">音效关</string>
+    <string name="audio_close_str">音效开</string>
 </resources>

@@ -102,6 +102,12 @@ public class CreateHouseActivity extends BaseActivity implements IMessageCallBac
                         addMessageAdapter("提莫队长 加入了游戏");
                         isShowHead(true);
                     }
+
+                    @Override
+                    public void onDisableConnect() {
+                        addMessageAdapter("提莫队长 退出了游戏");
+                        isShowHead(false);
+                    }
                 });
                 ConnectManage.getInstance().registerMessageListener(this);
                 break;
@@ -112,6 +118,11 @@ public class CreateHouseActivity extends BaseActivity implements IMessageCallBac
                         isShowHead(true);
                         CreateHouseActivity.this.mSocketDevice = socket;
                         Log.v("test", "连接服务器成功：=");
+                    }
+
+                    @Override
+                    public void onDisableConnect() {
+                        showDialog();
                     }
 
                 });
@@ -210,6 +221,7 @@ public class CreateHouseActivity extends BaseActivity implements IMessageCallBac
         super.onDestroy();
 //        ConnectManage.getInstance().onDestroy();
         ConnectManage.getInstance().registerMessageListener(null);
+        ConnectManage.getInstance().registerAcceptListener(null);
     }
 
     @Override
@@ -218,6 +230,7 @@ public class CreateHouseActivity extends BaseActivity implements IMessageCallBac
             addMessageAdapter(current == 1 ? otheName + ":" + messageObj.getContet() : houseName + ":" + messageObj.getContet());
         } else if (messageObj.getType() == 2) {//开始游戏
             WuZiGameActivity.startGameActivity(this, current);
+            CreateHouseActivity.this.finish();
         }
     }
 
@@ -239,5 +252,11 @@ public class CreateHouseActivity extends BaseActivity implements IMessageCallBac
                 });
                 break;
         }
+    }
+
+    @Override
+    public void onBackPressed() {
+        super.onBackPressed();
+        ConnectManage.getInstance().onDestroy();
     }
 }

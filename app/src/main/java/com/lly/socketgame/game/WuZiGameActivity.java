@@ -75,6 +75,7 @@ public class WuZiGameActivity extends BaseActivity implements View.OnClickListen
                 switch (messageObj.getType()) {
                     case 3://落棋子信息
                         ChessInfo chessInfo = messageObj.getChessInfo();
+                        Log.v("test", "类型:=" + chessInfo.type);
                         mSurfaceView.addChess(chessInfo);
                         break;
                     case 4://失败提示信息
@@ -90,6 +91,7 @@ public class WuZiGameActivity extends BaseActivity implements View.OnClickListen
                         break;
                     case 7://同意悔棋
                         mSurfaceView.onGoBack();
+                        mSurfaceView.enableChess();
                         Toast.makeText(WuZiGameActivity.this, "对方同意悔棋", Toast.LENGTH_SHORT).show();
                         break;
                     case 8://拒绝悔棋
@@ -108,6 +110,8 @@ public class WuZiGameActivity extends BaseActivity implements View.OnClickListen
                 messageObj.setType(3);
                 ChessInfo chessInfo = new ChessInfo(x, y, userType);
                 messageObj.setChessInfo(chessInfo);
+
+
                 SocketDevice socketDevice = userType == 1 ? ConnectManage.getInstance().getClientDevice() : ConnectManage.getInstance().getServerDevice();
                 socketDevice.sendMessage(messageObj, new IMessageSendListener() {
                     @Override
@@ -157,6 +161,8 @@ public class WuZiGameActivity extends BaseActivity implements View.OnClickListen
         dialog.setButton(DialogInterface.BUTTON_POSITIVE, "同意", new DialogInterface.OnClickListener() {
             @Override
             public void onClick(DialogInterface dialog, int which) {
+                mSurfaceView.onGoBack();
+                mSurfaceView.disableChess();
                 dialog.dismiss();
                 sendMessage(7);
             }
@@ -192,4 +198,9 @@ public class WuZiGameActivity extends BaseActivity implements View.OnClickListen
         });
     }
 
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        ConnectManage.getInstance().onDestroy();
+    }
 }

@@ -31,8 +31,9 @@ public class ConnectManage {
     private IAcceptClientListener mIAcceptClientListener;
     private IMessageCallBack mImessageCallBack;
 
-//    private Socket mClientSocke;
 
+    //服务器
+    private ServerSocket mServer;
 
     private SocketDevice mServerSocket;
 
@@ -62,8 +63,8 @@ public class ConnectManage {
      */
     public void initServer(IAcceptClientListener listener) {
         try {
-            ServerSocket serverSocket = new ServerSocket(SERVER_PORT);
-            acceptTask(serverSocket, listener);
+            mServer = new ServerSocket(SERVER_PORT);
+            acceptTask(mServer, listener);
         } catch (IOException e) {
             e.printStackTrace();
         }
@@ -85,6 +86,20 @@ public class ConnectManage {
                         if (listener != null) {
                             listener.onConnect(mServerSocket);
                         }
+                        pollCheckConnect(socket, new IConnectListener() {
+                            @Override
+                            public void disConnect() {
+                                //连接断开
+                                handler.post(new Runnable() {
+                                    @Override
+                                    public void run() {
+                                        if (listener != null) {
+                                            listener.onDisableConnect();
+                                        }
+                                    }
+                                });
+                            }
+                        });
                         ClientTask clientTask = new ClientTask(socket, new IMessageCallBack() {
                             @Override
                             public void acceptMessage(final MessageObj messageObj) {
@@ -139,15 +154,21 @@ public class ConnectManage {
                 try {
                     Socket mClientSocke = new Socket(IP_ADDRESS, SERVER_PORT);
                     mClientsocketDevice = new SocketDevice(mClientSocke, handler);
-//                    pollCheckConnect(mClientSocke, new IConnectListener() {
-//                        @Override
-//                        public void disConnect() {
-//                            //连接断开
-//                            listener.onDisconnect(mClientSocke);
-//                        }
-//                    });
+                    pollCheckConnect(mClientSocke, new IConnectListener() {
+                        @Override
+                        public void disConnect() {
+                            //连接断开
+                            handler.post(new Runnable() {
+                                @Override
+                                public void run() {
+                                    if (listener != null) {
+                                        listener.onDisableConnect();
+                                    }
+                                }
+                            });
+                        }
+                    });
                     listener.onConnect(mClientsocketDevice);
-//                    socket.getOutputStream();
                     while (!isDestory) {
                         try {
                             ObjectInputStream inputStream = new ObjectInputStream(mClientSocke.getInputStream());
@@ -192,9 +213,9 @@ public class ConnectManage {
                         }
                     } catch (IOException e) {
                         e.printStackTrace();
-//                        if (mIAcceptClientListener != null) {
-//                            mIAcceptClientListener.onDisconnect(mClientSocke);
-//                        }
+                        if (mIAcceptClientListener != null) {
+                            mIAcceptClientListener.onDisableConnect();
+                        }
                         listener.disConnect();
                         break;
                     }
@@ -208,6 +229,23 @@ public class ConnectManage {
      */
     public void onDestroy() {
         isDestory = true;
+        try {
+            if (mServer != null) {
+                mServer.close();
+                mServer = null;
+            }
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        if (mServerSocket != null) {
+            if (mServerSocket.getSocket() != null) {
+                try {
+                    mServerSocket.getSocket().close();
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+            }
+        }
     }
 
 
@@ -228,14 +266,10 @@ public class ConnectManage {
         return mServerSocket;
     }
 
-
     /**
-     * 获取
-     *
-     * @return
+     * 获取服务器端
      */
     public SocketDevice getServerDevice() {
-
         return mClientsocketDevice;
     }
 

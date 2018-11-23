@@ -13,4 +13,8 @@ public interface IAcceptClientListener {
 
     void onConnect(SocketDevice socket);
 
+
+    void onDisableConnect();
+
+
 }

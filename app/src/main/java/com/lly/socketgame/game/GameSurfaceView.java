@@ -384,6 +384,7 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
     public boolean addChess(ChessInfo chessInfo) {
         if (chessInfos.size() < (LINE_MAX * LINE_MAX)) {
             chessInfos.add(chessInfo);
+            AllChess[chessInfo.x][chessInfo.y] = chessInfo.type;
             enableChess();
             return true;
         }
@@ -395,7 +396,6 @@ public class GameSurfaceView extends SurfaceView implements SurfaceHolder.Callba
         ChessInfo chessInfo = chessInfos.get(chessInfos.size() - 1);
         AllChess[chessInfo.x][chessInfo.y] = 0;
         chessInfos.remove(chessInfos.size() - 1);
-        enableChess();
     }
 
     public interface onLocationListener {
